@@ -1,0 +1,28 @@
+#开发环境配置文件
+spring:
+  datasource:
+    username: username
+    url: jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: password
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    root: info
+    com.star: debug
+  file:
+    name: log/blog-dev.log
+
+mybatis-plus:
+  type-aliases-package: com.wuminggao.blog.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: 8080
+  servlet:
+    context-path: /

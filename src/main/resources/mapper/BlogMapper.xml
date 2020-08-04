@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuminggao.blog.mapper.BlogMapper">
+
+    <resultMap id="tag" type="Tag">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+    </resultMap>
+
+    <resultMap id="blog" type="Blog">
+        <id property="id" column="id"></id>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="flag" column="flag"/>
+        <result property="views" column="views"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="typeId" column="type_id"/>
+        <result property="firstPicture" column="first_picture"/>
+        <result property="shareStatement" column="share_statement"/>
+        <result property="published" column="published"/>
+        <result property="appreciation" column="appreciation"/>
+        <result property="commentabled" column="commentabled"/>
+        <result property="description" column="description"/>
+        <result property="recommend" column="recommend"/>
+        <result property="createTime" column="create_time"/>
+        <result property="typeId" column="type_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="tagIds" column="tag_ids"/>
+        <association property="type" javaType="Type">
+            <id property="id" column="typeId"></id>
+            <result property="name" column="typeName"></result>
+        </association>
+        <association property="user" javaType="User">
+            <id property="id" column="userId"></id>
+            <result property="nickname" column="nickname"></result>
+            <result property="username" column="username"></result>
+            <result property="email" column="email"></result>
+            <result property="avatar" column="avatar"></result>
+        </association>
+        <collection property="tags" ofType="Tag">
+            <id property="id" column="tagId"></id>
+            <result property="name" column="tagName"></result>
+        </collection>
+    </resultMap>
+
+    <select id="selectBlogListByCondition" resultMap="blog">
+        select b.id, b.title, b.recommend, b.create_time, b.published, b.type_id,
+        t.id typeId, t.name typeName
+        from t_blog b join t_type t
+        on b.type_id = t.id
+        <where>
+            <if test="true">
+                b.deleted = false
+            </if>
+            <if test="typeId != null">
+                and b.type_id = #{typeId}
+            </if>
+            <if test="recommend != null">
+                and b.recommend = #{recommend}
+            </if>
+            <if test="title != null">
+                and b.title like concat('%',#{title},'%')
+            </if>
+        </where>
+        order by b.create_time DESC
+    </select>
+
+    <select id="selectBlogListByTitleAndContent" resultMap="blog">
+        select b.id, b.title, b.description, b.views, b.recommend, b.create_time, b.update_time,
+        b.published, b.type_id, b.first_picture,
+        t.id typeId, t.name typeName, u.id userId, u.nickname, u.avatar
+        from t_blog b join t_type t join t_user u
+        on b.type_id = t.id and u.id = b.user_id
+--             是否查询所有发布的和草稿文章 all=true时，都查询；all=false，只查询发布的，用于前端搜索
+            <where>
+                <if test="true">
+                    (b.content like concat('%', #{content}, '%')or
+                     b.title like concat('%',#{content},'%'))
+                    and deleted = false
+                </if>
+                <if test="all == false">
+                    and b.published = true
+                </if>
+            </where>
+        order by b.create_time DESC
+    </select>
+
+    <select id="selectIndexBlog" resultMap="blog">
+        select b.id, b.title, b.description, b.views, b.recommend,
+        b.create_time, b.published, b.type_id,
+        b.first_picture, t.id typeId, t.name typeName, u.id userId, u.nickname, u.avatar
+        from t_blog b join t_type t join t_user u
+        on b.type_id = t.id and b.user_id = u.id
+        where b.published = true and deleted = false
+        order by create_time desc
+    </select>
+
+    <select id="selectBlogByType" resultMap="blog">
+        select b.id, b.title, b.description, b.views,
+        b.recommend, b.create_time, b.published, b.type_id,
+        b.first_picture, t.id typeId, t.name typeName, u.id userId, u.nickname, u.avatar
+        from t_blog b join t_type t join t_user u
+        on b.type_id = t.id and b.user_id = u.id
+        where b.type_id = #{id} and b.published = true and deleted = false
+        order by create_time desc
+    </select>
+
+    <select id="selectBlogByTag" resultMap="blog">
+        select b.id, b.title, b.description, b.views,
+        b.recommend, b.create_time, b.published, b.type_id,
+        b.first_picture, t.id typeId, t.name typeName, u.id userId, u.nickname, u.avatar,
+        t_tag.id tagId, t_tag.name tagName
+        from t_blog b join t_type t join t_user u join t_blog_tags join t_tag
+        on b.type_id = t.id and b.user_id = u.id and t_blog_tags.blog_id = b.id and t_tag.id = t_blog_tags.tag_id
+        where t_blog_tags.tag_id = #{id} and b.published = true and deleted = false
+		order by create_time desc
+    </select>
+
+    <select id="selectDetailBlogById" resultMap="blog">
+        select b.id, b.title, b.views, b.content,
+        b.recommend, b.create_time, b.published, b.first_picture, b.flag,
+        b.share_statement, b.commentabled, b.appreciation,
+        t.id typeId, t.`name` typeName,
+        u.id userId, u.nickname, u.avatar,
+        tag.id tagId, tag.name tagName
+        from t_blog b join t_type t join t_user u join t_blog_tags join t_tag tag
+        on b.type_id = t.id and b.user_id = u.id and t_blog_tags.blog_id = b.id and tag.id = t_blog_tags.tag_id
+        where b.id = #{id}
+    </select>
+
+    <update id="updateViews">
+        update t_blog b set b.views = b.views+1 where b.id = #{id}
+    </update>
+
+    <select id="selectAllTagByBlogId" resultMap="tag">
+        select t.id, t.name
+        from t_blog b join t_blog_tags bt join t_tag t
+        on b.id = bt.blog_id and bt.tag_id = t.id
+        where b.id = #{id} and b.deleted = false
+    </select>
+
+    <select id="findGroupYear" resultType="java.lang.String">
+        select DATE_FORMAT(b.create_time, '%Y') `year`
+        from t_blog b
+        where b.published = true and b.deleted = false
+        group by `year`
+        order by `year` desc
+    </select>
+
+    <select id="findBlogByYear" resultMap="blog">
+        select b.id, b.title, b.create_time, b.flag
+        from t_blog b
+        where DATE_FORMAT(b.create_time, '%Y') = #{year} and b.published = true and b.deleted = false
+        order by b.create_time desc
+    </select>
+</mapper>

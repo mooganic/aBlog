@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuminggao.blog.mapper.TypeMapper">
+
+    <resultMap id="type" type="Type">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="blogCount" column="blogCount"></result>
+    </resultMap>
+
+    <select id="selectTopList" resultMap="type">
+        select t.id, t.name,count(*) blogCount
+        from t_type t join t_blog b
+        on t.id = b.type_id
+        where b.published = true and b.deleted = false
+        group by t.id
+        order by blogCount DESC limit #{size};
+    </select>
+</mapper>

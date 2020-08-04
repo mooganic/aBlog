@@ -1,0 +1,24 @@
+#部署环境配置文件
+spring:
+  datasource:
+    username: username
+    url: jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: password
+logging:
+  level:
+    root: warn
+    com.star: info
+  file:
+    name: log/blog-prop.log
+
+mybatis-plus:
+  type-aliases-package: com.wuminggao.blog.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: 8088
+  servlet:
+    context-path: /myblog

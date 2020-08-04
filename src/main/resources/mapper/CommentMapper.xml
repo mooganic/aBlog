@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuminggao.blog.mapper.CommentMapper">
+
+    <resultMap id="comment" type="Comment">
+        <id property="id" column="id"></id>
+        <result property="nickname" column="nickname"></result>
+        <result property="email" column="email"></result>
+        <result property="content" column="content"></result>
+        <result property="avatar" column="avatar"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="blogId" column="blog_id"></result>
+        <result property="parentCommentId" column="parent_comment_id"></result>
+        <result property="adminComment" column="admin_comment"></result>
+        <collection property="replyComments" ofType="Comment">
+            <id property="id" column="rid"></id>
+            <result property="nickname" column="rnickname"></result>
+            <result property="email" column="remail"></result>
+            <result property="content" column="rcontent"></result>
+            <result property="avatar" column="ravatar"></result>
+            <result property="createTime" column="rcreate_time"></result>
+            <result property="blogId" column="rblog_id"></result>
+            <result property="parentCommentId" column="rparent_comment_id"></result>
+            <result property="adminComment" column="radmin_comment"></result>
+            <association property="parentComment" javaType="Comment">
+                <id property="id" column="id"></id>
+                <result property="nickname" column="nickname"></result>
+                <result property="email" column="email"></result>
+                <result property="content" column="content"></result>
+                <result property="avatar" column="avatar"></result>
+                <result property="createTime" column="create_time"></result>
+                <result property="blogId" column="blog_id"></result>
+                <result property="parentCommentId" column="parent_comment_id"></result>
+                <result property="adminComment" column="admin_comment"></result>
+            </association>
+        </collection>
+    </resultMap>
+
+    <select id="selectParentComment" resultMap="comment">
+        select c1.id, c1.nickname, c1.email, c1.content, c1.avatar,
+        c1.create_time, c1.blog_id, c1.parent_comment_id, c1.admin_comment,
+        c2.id rid, c2.nickname rnickname, c2.email reamil, c2.content rcontent, c2.avatar ravatar,
+        c2.create_time rcreate_time, c2.blog_id rblog_id,
+        c2.parent_comment_id rparent_comment_id, c2.admin_comment radmin_comment
+        from t_comment c1
+        left join t_comment c2
+        on c1.id = c2.parent_comment_id
+        where c1.parent_comment_id = -1
+        and c1.blog_id = #{blogId}
+        order by c1.create_time desc
+    </select>
+
+    <select id="selectChildCommentsByBlogIdAndCommentId" resultMap="comment">
+        select c1.id, c1.nickname, c1.email, c1.content, c1.avatar,
+        c1.create_time, c1.blog_id, c1.parent_comment_id, c1.admin_comment,
+        c2.id rid, c2.nickname rnickname, c2.email reamil, c2.content rcontent, c2.avatar ravatar,
+        c2.create_time rcreate_time, c2.blog_id rblog_id,
+        c2.parent_comment_id rparent_comment_id, c2.admin_comment radmin_comment
+        from t_comment c1
+        join t_comment c2
+        on c1.id = c2.parent_comment_id
+        where c1.parent_comment_id != -1
+        and c1.blog_id = #{blogId}
+        and c1.id = #{commentId}
+        order by c1.create_time desc
+    </select>
+</mapper>
